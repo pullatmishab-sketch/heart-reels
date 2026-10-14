@@ -1,0 +1,282 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html,body{margin:0;padding:0;background:#380202;}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:'Inter','DejaVu Sans',sans-serif;
+    background:radial-gradient(ellipse at 50% 62%, #54070b 0%, #430404 38%, #380202 75%, #2b0101 100%);}
+  svg{position:absolute;left:0;top:0;}
+  .abs{position:absolute;left:0;width:1080px;text-align:center;color:#fff;}
+  #brand{top:170px;font-size:30px;letter-spacing:8px;color:#d9b36c;font-weight:600;opacity:.85}
+  #hook{top:270px;font-size:62px;line-height:1.14;font-weight:800;padding:0 40px;box-sizing:border-box;letter-spacing:-1px;
+    text-shadow:0 6px 30px rgba(0,0,0,.45);}
+  #hook .gold{color:#f0c978}
+  #cap{top:1345px;font-size:58px;line-height:1.22;font-weight:700;padding:0 80px;box-sizing:border-box;
+    text-shadow:0 4px 22px rgba(0,0,0,.5);}
+  #cap .w{color:rgba(255,235,225,.38);transition:none}
+  #cap .on{color:#fff}
+  #cap .cur{color:#f0c978}
+  #who{top:1290px;font-size:26px;letter-spacing:6px;font-weight:700;color:#d9b36c}
+  #cta{top:1350px;left:90px;width:900px;border-radius:44px;background:linear-gradient(135deg,#f0c978,#d9a441);
+    color:#4a0710;padding:46px 40px;box-sizing:border-box;box-shadow:0 20px 60px rgba(0,0,0,.45);}
+  #cta .k{font-size:92px;font-weight:900;letter-spacing:4px;line-height:1}
+  #cta .t{font-size:38px;font-weight:700;margin-top:18px;line-height:1.25}
+</style></head>
+<body>
+<div id="stage">
+  <svg id="art" width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="gCream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdeee4"/><stop offset="1" stop-color="#e8b7a6"/></linearGradient>
+      <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ee3a42"/><stop offset="1" stop-color="#a80f1d"/></linearGradient>
+      <radialGradient id="floor"><stop offset="0" stop-color="#c0303c" stop-opacity=".55"/><stop offset="1" stop-color="#c0303c" stop-opacity="0"/></radialGradient>
+      <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <path id="heart" d="M0,125 C-200,-5 -160,-175 -62,-155 C-22,-147 0,-115 0,-98 C0,-115 22,-147 62,-155 C160,-175 200,-5 0,125 Z"/>
+      <path id="tinyheart" d="M0,10 C-14,-2 -12,-14 -5,-12 C-2,-11 0,-8 0,-6 C0,-8 2,-11 5,-12 C12,-14 14,-2 0,10 Z"/>
+    </defs>
+    <ellipse cx="540" cy="1190" rx="520" ry="90" fill="url(#floor)"/>
+    <g id="particles"></g>
+    <g id="bubbleHer"></g><g id="bubbleHim"></g>
+    <g id="her"></g><g id="him"></g>
+  </svg>
+  <div class="abs" id="brand">NIKAH GUIDE</div>
+  <div class="abs" id="hook"></div>
+  <div class="abs" id="who"></div>
+  <div class="abs" id="cap"></div>
+  <div class="abs" id="cta" style="display:none"></div>
+</div>
+<script>
+const TL = /*TL*/null;
+const FPS = TL.fps, DUR = TL.duration;
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+
+// ---------- helpers
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const ease=x=>1-Math.pow(1-clamp(x),3);
+const back=x=>{x=clamp(x);const c=1.9;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+function rnd(seed){let s=seed;return()=>{s=(s*16807)%2147483647;return(s-1)/2147483646}}
+
+// ---------- hook text with gold emphasis
+(function(){
+  const lines = TL.hook.split('\n');
+  $('hook').innerHTML = lines.map((l,i)=> i==1 ? '<span class="gold">'+l+'</span>' : l).join('<br>');
+})();
+
+// ---------- characters
+const CH = {
+  her:{x:300,y:1030,grad:'url(#gCream)',body:'#f1c9b9',dark:'#caa08f',side:-1, bub:'bubbleHer'},
+  him:{x:790,y:1030,grad:'url(#gRed)',body:'#c91b28',dark:'#8e0f1b',side:1, bub:'bubbleHim'}
+};
+function charSVG(c){
+  return `
+  <g class="all">
+    <g class="legs">
+      <rect x="-70" y="105" width="52" height="100" rx="26" fill="${c.body}"/>
+      <rect x="18" y="105" width="52" height="100" rx="26" fill="${c.body}"/>
+    </g>
+    <path class="armBack" d="" stroke="${c.body}" stroke-width="40" stroke-linecap="round" fill="none"/>
+    <use href="#heart" fill="${c.grad}"/>
+    <path d="M-120,-100 C-110,-135 -75,-150 -50,-140" stroke="#fff" stroke-opacity=".55" stroke-width="16" stroke-linecap="round" fill="none"/>
+    <path class="armFront" d="" stroke="${c.body}" stroke-width="40" stroke-linecap="round" fill="none"/>
+    <g class="face">
+      <ellipse cx="-62" cy="30" rx="30" ry="18" fill="#ff6f7a" opacity=".45"/>
+      <ellipse cx="62" cy="30" rx="30" ry="18" fill="#ff6f7a" opacity=".45"/>
+      <g class="brows" stroke="#4a1218" stroke-width="7" stroke-linecap="round" fill="none">
+        <path class="bl" d="M-86,-38 Q-62,-54 -38,-42"/><path class="br" d="M38,-42 Q62,-54 86,-38"/>
+      </g>
+      <g class="eyes">
+        <ellipse class="el" cx="-58" cy="-6" rx="18" ry="24" fill="#3a0f14"/>
+        <ellipse class="er" cx="58" cy="-6" rx="18" ry="24" fill="#3a0f14"/>
+        <circle class="hl1" cx="-52" cy="-16" r="6.5" fill="#fff"/><circle class="hl2" cx="64" cy="-16" r="6.5" fill="#fff"/>
+      </g>
+      <g class="mouth"><path class="mp" d="" fill="#6e0c18"/><ellipse class="tg" cx="0" cy="62" rx="14" ry="8" fill="#ff7f8c"/></g>
+    </g>
+  </g>`;
+}
+for (const k of ['her','him']){
+  const c=CH[k]; const g=$(k); g.innerHTML = charSVG(c); c.g=g;
+  c.q = s => g.querySelector(s);
+}
+
+// ---------- bubbles
+function bubbleSVG(){
+  return `<g class="bub">
+    <path d="M-110,-70 Q-110,-95 -80,-95 L80,-95 Q110,-95 110,-70 L110,30 Q110,55 80,55 L30,55 L-8,100 L-12,55 L-80,55 Q-110,55 -110,30 Z"
+      fill="#6a0a14" stroke="#d9b36c" stroke-width="7" stroke-linejoin="round" filter="url(#glow)"/>
+    <g class="ico"></g></g>`;
+}
+const BUB = {
+  her:{x:300,y:625,el:$('bubbleHer')}, him:{x:800,y:665,el:$('bubbleHim')}
+};
+for (const k in BUB){ BUB[k].el.innerHTML=bubbleSVG(); BUB[k].ico=BUB[k].el.querySelector('.ico'); BUB[k].g=BUB[k].el.querySelector('.bub'); }
+
+// ---------- particles (tiny gold hearts)
+const PR = rnd(7), P=[];
+for(let i=0;i<14;i++) P.push({x:60+PR()*960,y:500+PR()*1000,s:.9+PR()*1.3,sp:14+PR()*26,ph:PR()*6.28,fl:PR()});
+const pg=$('particles');
+P.forEach(p=>{const u=document.createElementNS(NS,'use');u.setAttribute('href','#tinyheart');u.setAttribute('fill','none');u.setAttribute('stroke','#d9b36c');u.setAttribute('stroke-width','2');p.el=u;pg.appendChild(u)});
+
+// ---------- state helpers
+function activeLine(t){
+  for(let i=0;i<TL.lines.length;i++){const l=TL.lines[i]; if(t>=l.start-0.05 && t<=l.end+0.15) return i}
+  return -1;
+}
+function lastEnded(t){let r=-1;TL.lines.forEach((l,i)=>{if(t>l.end)r=i});return r}
+
+// ---------- caption builder (cached)
+let capIdx=-2;
+function buildCap(i){
+  const l=TL.lines[i]; const words=l.text.split(/\s+/);
+  const tot=words.reduce((a,w)=>a+w.length+1,0); let acc=0;
+  l.w = words.map(w=>{const s=acc/tot; acc+=w.length+1; return {w, s}});
+  $('cap').innerHTML = l.w.map((o,j)=>`<span class="w" data-j="${j}">${o.w}</span>`).join(' ');
+}
+
+// ---------- main render
+function mouthPath(open, smile){
+  const w=26, y0=52;
+  const o = open*34;
+  const cy = y0 + 6 + smile*10 + o;
+  return `M${-w},${y0} Q0,${cy+ o*0.9} ${w},${y0} Q0,${y0-3} ${-w},${y0} Z`;
+}
+function armPath(c, side, t, mode, speakPhase){
+  // shoulder positions relative to heart
+  const sx = side*118, sy = 55;
+  let hx, hy, mx, my;
+  if(mode==='gesture'){
+    const sw = Math.sin(speakPhase*5.2)*0.5+0.5;
+    hx = side*(190+sw*50); hy = 30 - sw*60;
+    mx = side*(170); my = 90 - sw*20;
+  } else if(mode==='cheek'){
+    hx = side*92; hy = 52+Math.sin(t*2.1)*4;
+    mx = side*155; my = 110;
+  } else if(mode==='cheer'){
+    const sw=Math.sin(t*9+side)*14;
+    hx = side*(185); hy = -20+sw; mx = side*165; my=60;
+  } else { hx = side*140; hy = 135; mx = side*150; my=95; }
+  return `M${sx},${sy} Q${mx},${my} ${hx},${hy}`;
+}
+
+function setChar(k, t, o){
+  const c=CH[k];
+  const bob = Math.sin(t*2.2 + (k==='him'?1.6:0))*5;
+  const speak = o.speaking;
+  const hop = speak ? Math.abs(Math.sin(t*7.5))*10*o.env : 0;
+  const sq = 1 + (speak ? o.env*0.035*Math.sin(t*15) : Math.sin(t*2.2)*0.012);
+  const lean = o.lean*(c.side*-1);
+  const sc = 1.14*o.pop;
+  c.g.setAttribute('transform',`translate(${c.x},${c.y-bob-hop}) rotate(${lean}) scale(${sc*(2-sq)},${sc*sq})`);
+  // blink
+  const bp=(t+ (k==='him'?1.7:0))%3.6; const blink = bp>3.45? 1-Math.abs((bp-3.525)/0.075):0;
+  const ry = o.happy? 9 : 24*(1-clamp(blink)*0.92);
+  for(const s of ['.el','.er']){const e=c.q(s); e.setAttribute('ry',ry); e.setAttribute('cy', o.happy? -2:-6)}
+  c.q('.hl1').setAttribute('opacity', (o.happy||blink>.5)?0:1); c.q('.hl2').setAttribute('opacity',(o.happy||blink>.5)?0:1);
+  // brows
+  const bl = speak? -6*o.env : 0;
+  c.q('.bl').setAttribute('transform',`translate(0,${bl-(o.happy?6:0)})`); c.q('.br').setAttribute('transform',`translate(0,${bl-(o.happy?6:0)})`);
+  // mouth
+  const open = speak ? clamp(o.env*1.15) : 0;
+  c.q('.mp').setAttribute('d', mouthPath(open, o.happy?1:0.3));
+  c.q('.tg').setAttribute('opacity', open>0.25?1:0);
+  c.q('.tg').setAttribute('cy', 66+open*14);
+  // arms
+  const mode = o.arm;
+  const frontSide = c.side*-1; // arm facing the other heart
+  c.q('.armFront').setAttribute('d', armPath(c, -c.side, t, mode, t)); // arm toward partner
+  c.q('.armBack').setAttribute('d', armPath(c, c.side, t, mode==='gesture'?'rest':mode, t));
+}
+
+function setBubble(k,t,state,env){
+  // state: 'heart' | 'dots' | 'off'
+  const b=BUB[k]; const sc = state.pop;
+  b.el.setAttribute('transform',`translate(${b.x},${b.y+Math.sin(t*2+ (k==='him'?2:0))*4}) scale(${sc})`);
+  b.el.style.opacity = state.vis;
+  let h='';
+  if(state.type==='heart'){
+    const s=1+Math.sin(t*9)*0.12*(0.4+env);
+    h=`<use href="#heart" transform="translate(0,-14) scale(${0.19*s})" fill="none" stroke="#f0c978" stroke-width="12"/>`;
+  } else {
+    for(let i=0;i<3;i++){const a=Math.sin(t*6 - i*0.9); h+=`<circle cx="${-40+i*40}" cy="${-12 - Math.max(0,a)*12}" r="11" fill="#f0c978"/>`}
+  }
+  b.ico.innerHTML=h;
+}
+
+function render(t){
+  t = clamp(t,0,DUR);
+  const fi = Math.min(TL.env.length-1, Math.floor(t*FPS));
+  const env = TL.env[fi];
+  const ai = activeLine(t);
+  const L = ai>=0? TL.lines[ai] : null;
+  const who = L? L.who : null;
+
+  // ---- hook text: big at start, glides up & shrinks slightly once dialogue starts
+  const hookIn = ease(t/0.5);
+  const shrink = ease((t-2.6)/0.6);
+  $('hook').style.opacity = hookIn;
+  $('hook').style.transform = `translateY(${(1-hookIn)*30 - shrink*60}px) scale(${1-shrink*0.22})`;
+  const isCta = L && L.cta;
+  const hookFade = isCta? 1-ease((t-L.start)/0.35):1;
+  $('hook').style.opacity = hookIn*hookFade;
+
+  // ---- characters
+  const afterAll = t > TL.lines[TL.lines.length-1].end;
+  const enter = back(t/0.7);
+  const happyEnd = isCta || afterAll;
+  for(const k of ['her','him']){
+    const K = k.toUpperCase();
+    const speaking = who===K;
+    const pop = enter * (speaking? 1 + 0.045*ease((t-L.start)/0.2):1);
+    let arm = 'rest';
+    if(happyEnd) arm='cheer'; else if(speaking) arm='gesture'; else if(who) arm='cheek';
+    setChar(k,t,{speaking,env: speaking? env:0,pop,arm,lean: speaking? Math.sin(t*3)*2.2: (who? -1.5:0),happy:happyEnd});
+  }
+
+  // ---- bubbles
+  for(const k of ['her','him']){
+    const K=k.toUpperCase();
+    let st={vis:0,pop:0.01,type:'dots'};
+    if(who){
+      const tt = L? clamp((t-L.start)/0.25):1;
+      const speaking = who===K;
+      st = {vis:1,pop: back(tt)*1.0,type: speaking? 'heart':'dots'};
+    } else if(!afterAll && t<TL.lines[0].start) { st={vis:0,pop:.01,type:'dots'} }
+    if(happyEnd){ st={vis:0,pop:.01,type:'heart'} }
+    setBubble(k,t,st,env);
+  }
+
+  // ---- particles
+  P.forEach(p=>{
+    const y = (p.y - t*p.sp) ; const yy = ((y%1500)+1500)%1500 + 330;
+    const x = p.x + Math.sin(t*0.9+p.ph)*22;
+    const fade = clamp((yy-330)/160)*clamp((1830-yy)/200);
+    p.el.setAttribute('transform',`translate(${x},${yy}) scale(${p.s*1.4}) rotate(${Math.sin(t+p.ph)*14})`);
+    p.el.setAttribute('opacity',(0.25+0.45*p.fl)*fade);
+  });
+
+  // ---- caption / CTA
+  if(L && !L.cta){
+    if(capIdx!==ai){buildCap(ai);capIdx=ai}
+    $('cap').style.display='block'; $('cta').style.display='none';
+    $('who').style.display='block'; $('who').textContent = L.who==='HER'?'SHE SAYS':'HE SAYS';
+    const prog = clamp((t-L.start)/Math.max(0.1,(L.end-L.start)));
+    const ws = $('cap').children;
+    for(let j=0;j<ws.length;j++){
+      const s=L.w[j].s, nx = j+1<L.w.length? L.w[j+1].s:1.01;
+      ws[j].className = 'w ' + (prog>=nx? 'on' : (prog>=s? 'cur':''));
+    }
+    const a=ease((t-L.start)/0.2);
+    $('cap').style.opacity=a; $('cap').style.transform=`translateY(${(1-a)*24}px)`;
+  } else if(L && L.cta || afterAll){
+    $('cap').style.display='none'; $('who').style.display='none';
+    const c=$('cta'); c.style.display='block';
+    const t0 = L? L.start : TL.lines[TL.lines.length-1].start;
+    const a=back((t-t0)/0.5);
+    if(!c.innerHTML) c.innerHTML = TL.cta_keyword ? `<div class="t">Comment</div><div class="k">${TL.cta_keyword}</div><div class="t">${TL.cta_sub||"and we'll send you the guide"}</div>` : `<div class="k" style="font-size:66px;line-height:1.15">${TL.cta_card||''}</div>`;
+    const pulse=1+Math.sin(t*6)*0.012;
+    c.style.transform=`scale(${a*pulse})`; c.style.opacity=clamp(a*1.5);
+  } else {
+    $('cap').style.display='none'; $('cta').style.display='none'; $('who').style.display='none';
+  }
+}
+window.render=render; window.__ready=true;
+render(0);
+</script></body></html>
