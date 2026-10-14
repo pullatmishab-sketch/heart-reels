@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - run: git config user.name render-bot && git config user.email render-bot@users.noreply.github.com
       - run: pip install edge-tts playwright imageio-ffmpeg
       - run: python -m playwright install --with-deps chromium
       - run: python pipeline/gh_render.py
